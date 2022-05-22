@@ -1424,7 +1424,7 @@ sensor_msgs::msg::Imu BaseRealSenseNode::CreateUnitedMessage(const CimuData acce
 
     imu_msg.linear_acceleration.x = accel_data.m_data.x();
     imu_msg.linear_acceleration.y = accel_data.m_data.y();
-    imu_msg.linear_acceleration.z = accel_data.m_data.z();
+    imu_msg.linear_acceleration.z = 0.0;
     return imu_msg;
 }
 
@@ -1588,7 +1588,7 @@ void BaseRealSenseNode::imu_callback(rs2::frame frame)
         {
             imu_msg.linear_acceleration.x = crnt_reading.x;
             imu_msg.linear_acceleration.y = crnt_reading.y;
-            imu_msg.linear_acceleration.z = crnt_reading.z;
+            imu_msg.linear_acceleration.z = 0.0;
         }
         _seq[stream_index] += 1;
         imu_msg.header.stamp = t;
@@ -1644,7 +1644,7 @@ void BaseRealSenseNode::pose_callback(rs2::frame frame)
         double cov_twist(_angular_velocity_cov * pow(10, 1-(int)pose.tracker_confidence));
 
         geometry_msgs::msg::Vector3Stamped v_msg;
-        tf2::Vector3 tfv(-pose.velocity.z, -pose.velocity.x, pose.velocity.y);
+        tf2::Vector3 tfv(-0.0, -pose.velocity.x, pose.velocity.y);
         tf2::Quaternion q(-msg.transform.rotation.x,-msg.transform.rotation.y,-msg.transform.rotation.z,msg.transform.rotation.w);
         tfv=tf2::quatRotate(q,tfv);
         v_msg.vector.x = tfv.x();
@@ -2109,7 +2109,7 @@ void BaseRealSenseNode::publish_static_tf(const rclcpp::Time& t,
     msg.child_frame_id = to;
     msg.transform.translation.x = trans.z;
     msg.transform.translation.y = -trans.x;
-    msg.transform.translation.z = -trans.y;
+    msg.transform.translation.z = 0.0;
     msg.transform.rotation.x = q.getX();
     msg.transform.rotation.y = q.getY();
     msg.transform.rotation.z = q.getZ();
