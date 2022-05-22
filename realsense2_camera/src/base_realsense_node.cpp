@@ -1617,7 +1617,7 @@ void BaseRealSenseNode::pose_callback(rs2::frame frame)
     geometry_msgs::msg::PoseStamped pose_msg;
     pose_msg.pose.position.x = -pose.translation.z;
     pose_msg.pose.position.y = -pose.translation.x;
-    pose_msg.pose.position.z = pose.translation.y;
+    pose_msg.pose.position.z = 0.0;
     pose_msg.pose.orientation.x = -pose.rotation.z;
     pose_msg.pose.orientation.y = -pose.rotation.x;
     pose_msg.pose.orientation.z = pose.rotation.y;
