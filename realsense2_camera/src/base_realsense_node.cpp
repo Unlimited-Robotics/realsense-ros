@@ -7,6 +7,8 @@
 #include <rclcpp/clock.hpp>
 #include <fstream>
 #include <iomanip>
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2/LinearMath/Matrix3x3.h"
 
 using namespace realsense2_camera;
 
@@ -1418,8 +1420,8 @@ sensor_msgs::msg::Imu BaseRealSenseNode::CreateUnitedMessage(const CimuData acce
     rclcpp::Time t(gyro_data.m_time_ns);  //rclcpp::Time(uint64_t nanoseconds)
     imu_msg.header.stamp = t;
 
-    imu_msg.angular_velocity.x = gyro_data.m_data.x();
-    imu_msg.angular_velocity.y = gyro_data.m_data.y();
+    imu_msg.angular_velocity.x = 0.0;
+    imu_msg.angular_velocity.y = 0.0;
     imu_msg.angular_velocity.z = gyro_data.m_data.z();
 
     imu_msg.linear_acceleration.x = accel_data.m_data.x();
@@ -1580,8 +1582,8 @@ void BaseRealSenseNode::imu_callback(rs2::frame frame)
         auto crnt_reading = *(reinterpret_cast<const float3*>(frame.get_data()));
         if (GYRO == stream_index)
         {
-            imu_msg.angular_velocity.x = crnt_reading.x;
-            imu_msg.angular_velocity.y = crnt_reading.y;
+            imu_msg.angular_velocity.x = 0.0;
+            imu_msg.angular_velocity.y = 0.0;
             imu_msg.angular_velocity.z = crnt_reading.z;
         }
         else if (ACCEL == stream_index)
@@ -1631,10 +1633,13 @@ void BaseRealSenseNode::pose_callback(rs2::frame frame)
     msg.transform.translation.x = pose_msg.pose.position.x;
     msg.transform.translation.y = pose_msg.pose.position.y;
     msg.transform.translation.z = pose_msg.pose.position.z;
-    msg.transform.rotation.x = pose_msg.pose.orientation.x;
-    msg.transform.rotation.y = pose_msg.pose.orientation.y;
+    
+    msg.transform.rotation.x = 0.0;
+    msg.transform.rotation.y = 0.0;
     msg.transform.rotation.z = pose_msg.pose.orientation.z;
     msg.transform.rotation.w = pose_msg.pose.orientation.w;
+
+
 
     if (_publish_odom_tf) br.sendTransform(msg);
 
@@ -1651,12 +1656,12 @@ void BaseRealSenseNode::pose_callback(rs2::frame frame)
         v_msg.vector.y = tfv.y();
         v_msg.vector.z = 0.0;
 	
-        tfv = tf2::Vector3(-pose.angular_velocity.z, -pose.angular_velocity.x, pose.angular_velocity.y);
+        tfv = tf2::Vector3(0.0, 0.0, pose.angular_velocity.y);
         tfv=tf2::quatRotate(q,tfv);
         geometry_msgs::msg::Vector3Stamped om_msg;
-        om_msg.vector.x = tfv.x();
-        om_msg.vector.y = tfv.y();
-        om_msg.vector.z = 0.0;	
+        om_msg.vector.x = 0.0;
+        om_msg.vector.y = 0.0;
+        om_msg.vector.z = tfv.z();	
 
         nav_msgs::msg::Odometry odom_msg;
         _seq[stream_index] += 1;
@@ -1664,7 +1669,11 @@ void BaseRealSenseNode::pose_callback(rs2::frame frame)
         odom_msg.header.frame_id = _odom_frame_id;
         odom_msg.child_frame_id = _frame_id[POSE];
         odom_msg.header.stamp = t;
+        
+        pose_msg.pose.orientation.x = 0.0;
+        pose_msg.pose.orientation.y = 0.0;
         odom_msg.pose.pose = pose_msg.pose;
+        
         odom_msg.pose.covariance = {cov_pose, 0, 0, 0, 0, 0,
                                     0, cov_pose, 0, 0, 0, 0,
                                     0, 0, cov_pose, 0, 0, 0,
@@ -2116,6 +2125,31 @@ void BaseRealSenseNode::publish_static_tf(const rclcpp::Time& t,
     msg.transform.rotation.w = q.getW();
     _static_tf_msgs.push_back(msg);
 }
+//{
+//    geometry_msgs::msg::TransformStamped msg;
+//    msg.header.stamp = t;
+//    msg.header.frame_id = from;
+//    msg.child_frame_id = to;
+//    msg.transform.translation.x = trans.z;
+//    msg.transform.translation.y = -trans.x;
+//    msg.transform.translation.z = 0.0;
+//
+//    tf2::Matrix3x3 m(q);
+//    double roll, pitch, yaw;
+//    m.getRPY(roll, pitch, yaw);
+//
+//    tf2::Quaternion quaternionEdited;
+//
+//    quaternionEdited.setRPY(0.0, 0.0, yaw);
+//
+//    quaternionEdited=quaternionEdited.normalize();
+//
+//    msg.transform.rotation.x = quaternionEdited.getX();
+//    msg.transform.rotation.y = quaternionEdited.getY();
+//    msg.transform.rotation.z = quaternionEdited.getZ();
+//    msg.transform.rotation.w = quaternionEdited.getW();
+//    _static_tf_msgs.push_back(msg);
+//}
 
 void BaseRealSenseNode::calcAndPublishStaticTransform(const stream_index_pair& stream, const rs2::stream_profile& base_profile)
 {
