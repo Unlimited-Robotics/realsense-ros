@@ -1021,7 +1021,7 @@ void BaseRealSenseNode::setupPublishers()
 
             if (stream == DEPTH && _pointcloud)
             {
-                _pointcloud_publisher = _node.create_publisher<sensor_msgs::msg::PointCloud2>("depth/color/points", 1);
+                _pointcloud_publisher = _node.create_publisher<sensor_msgs::msg::PointCloud2>("depth/color/points", rclcpp::SensorDataQoS());
             }
         }
     }
