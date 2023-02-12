@@ -158,6 +158,7 @@ namespace realsense2_camera
         rclcpp::Node& _node;
         bool _align_depth;
         std::vector<rs2_option> _monitor_options;
+        std::vector<std::string> _stream_params;
         rclcpp::Logger _logger;
 
         virtual void calcAndPublishStaticTransform(const stream_index_pair& stream, const rs2::stream_profile& base_profile);
@@ -171,7 +172,9 @@ namespace realsense2_camera
                                const std::string& to);
         template<class T>
         void setNgetNodeParameter(T& param, const std::string& param_name, const T& default_value, const rcl_interfaces::msg::ParameterDescriptor &parameter_descriptor=rcl_interfaces::msg::ParameterDescriptor());
-
+        void update_sensor(const std::string variable_name, const rclcpp::Parameter& parameter);
+        void registerStreamOptions(const std::string& param_name);
+        void registerStreamOption(const std::string& param_name, const int option_number, rs2::sensor sensor);
     private:
         class CimuData
         {
